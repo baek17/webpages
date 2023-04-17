@@ -1,85 +1,45 @@
-<?php 
-$date = empty($_GET['date']) ? date('Y-m-d') : $_GET['date'];
-$firstDate = date('Y-m',strtotime($date));
-$firstDateWcode = date('w',strtotime($firstDate));
-$lastDateDay = date('t', strtotime($date));
-$lastDateWcode = date('w',strtotime( date('Y-m-'.$lastDateDay,strtotime($date)) ));
+<form action="month.php" method="post">
+년(年)을 입력하세요 : <input type="number" name="y" /><br />
+월(月)을 입력하세요 : <input type="number" name="m" /><br />
+<input type="submit" value="확인" />
+</form>
+<?php
+if(isset($_POST["y"]) && strlen($_POST["y"]) > 0 && isset($_POST["m"]) && strlen($_POST["m"]))
+    $m = $_POST["m"];
+    $y = $_POST["y"];
 
-$prevDate = date('Y-m-d',strtotime("-1 month",strtotime($firstDate)));
-$nextDate = date('Y-m-d',strtotime("+1 month",strtotime($firstDate)));
-$prevLastDateDay = date('t', strtotime($prevDate));
-
-$week = array();
-$day = 1;
-while(1){
-	$subWeek = array();
-	for($i=0;$i<7;$i++){
-		if( $day > $lastDateDay){ 
-
-			// 마지막 날의 날짜코드가 6이 아니라면, 다음달을 미리 넣어준다.
-			if( $lastDateWcode != 6){
-				for($si=0;$si < 6-$lastDateWcode; $si++){
-					$thisDate = date('Y-m-'.($si+1),strtotime("+1 month",strtotime($firstDate)));
-					$subWeek[] = array('type'=>'next', 'day'=>$si+1,'date'=>$thisDate,'wcode'=>date('w',strtotime($thisDate)));		
-				}				
-			}
-			break; 
-		}
-		if( $day == 1 && $firstDateWcode != 0){
-			for($si=($prevLastDateDay-$firstDateWcode);$si < $prevLastDateDay; $si++){
-				$thisDate = date('Y-m-'.($si+1),strtotime("-1 month",strtotime($firstDate)));
-				$subWeek[] = array('type'=>'prev', 'day'=>$si+1,'date'=>$thisDate,'wcode'=>date('w',strtotime($thisDate)));
-			}
-			$i += $firstDateWcode;
-		}
-
-		$thisDate = date('Y-m-'.$day,strtotime($firstDate));
-		$subWeek[] = array('type'=>'now', 'day'=>$day,'date'=>$thisDate,'wcode'=>date('w',strtotime($thisDate)));		
-		$day++;
-	}
-	$week[] = $subWeek;
-	if( $day > $lastDateDay){ break; }
+    if(checkdate($m,1,$y)) {
+        $firstweekday = getDate(mktime(0,0,0,$m,1,$y)); //해당 월 1일의 요일
+        $firstweekday = $firstweekday["wday"];
+        $lastday = date("t", mktime(0,0,0,$m,1,$y)); //t = 주어진 월의 총 일 수(ex : 2014년 1월 = "31" 일)
+        $fc = ceil(($firstweekday+$lastday)/7); //총 주의 수
+        $count = $fc*7; //for 문 count
+        $j=1;
+        echo "<table border='1' width=\"500\" bordercolor=\"#0000FF\">";
+        echo "<tr bgcolor=\"#66FFFF\" align=\"center\"><td colspan=\"7\">". $y."년 ".$m."월 달력</td></tr>";
+        echo "<tr align=\"right\" bgcolor=\"#FF99FF\"><td>일</td><td>월</td><td>화</td><td>수</td><td>목</td><td>금</td><td>토</td></tr>";
+    for($i=1; $i<=$count; $i++){
+    if($i%7==1){
+    echo "<tr>";
+    }
+    echo "<td>";
+    if($i>$firstweekday && $j<=$lastday){
+    echo $j;
+    $j++;
+    }else{
+    echo "&nbsp;";
+    }
+    echo "</td>";
+    if($i%7==0){
+    echo "</tr>";
+    }
+    }
+echo "</table>";
+echo "<br/>";
 }
-
-echo '
-<body>
-	<div class="action">
-		<a href="?date='.$prevDate.'">이전 달</a>
-		<strong>'.$date.'</strong>
-		<a href="?date='.$nextDate.'">다음 달</a>
-	</div>
-	<table>
-		<tr>
-			<th>일</th>
-			<th>월</th>
-			<th>화</th>
-			<th>수</th>
-			<th>목</th>
-			<th>금</th>
-			<th>토</th>
-		</tr>
-';
-
-foreach($week as $k=>$v){
-	echo '<tr>';
-	foreach($v as $sk=>$sv){
-		echo '<td class="wcode_'.$sv['wcode'].''.($sv['type'] != 'now' ? ' prevnext':'').'" title="'.$sv['date'].'">'.$sv['day'].'</td>';
-	}
-	echo '</tr>';
+else {	
+echo "<script>alert(\"올바른 날짜형식을 입력해 주세요\");</script>"; 	
 }
-echo '</body>';
-?>
-<style>
-	body{  width:450px; }
-	.action{ text-align:center; margin:30px 0; }
-	.action strong{ font-size:35px; }
-    .action{font-family: "Verdana", sans-serif}
-	.action a{ text-decoration: none; color:#333; }
-	h1{ text-align:center; }
-	table{ width:100%;}
-	table th,td{ width: 15%; text-align:center; }
-    table{font-family: sans-serif}
-	table th.wcode_0,table td.wcode_0{ color:red; }
-	table th.wcode_6,table td.wcode_6{ color:blue; }
-	table td.prevnext{ color:#aaaa; }
-</style>
+ ?>
+</body>
+</html>
